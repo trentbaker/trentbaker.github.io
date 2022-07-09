@@ -4,10 +4,14 @@
 </script>
 
 <div class="decoderInput">
-  {emoji} <input maxlength="1" bind:value={currentLetter} />
+  <div class="label">{emoji}</div> <input maxlength="1" bind:value={currentLetter} />
 </div>
 
 <style>
+  .label{
+    margin: 0.2em;
+  }
+
   input {
     width: 1em;
     font-size: 100%;

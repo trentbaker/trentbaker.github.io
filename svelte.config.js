@@ -6,7 +6,13 @@ const config = {
   preprocess: preprocess(),
 
   kit: {
-    adapter: adapter(),
+    adapter: adapter({
+      pages: "docs",
+      assets: "docs"
+    }),
+    paths: {
+      base: "/trentbaker.github.io",
+    },
     prerender: {
       default: true,
     },

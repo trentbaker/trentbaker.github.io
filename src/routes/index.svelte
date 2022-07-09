@@ -53,7 +53,7 @@
     let current = ciphertext;
     inputs.forEach((decoder) => {
       let replaceLetter = decoder.currentLetter;
-      if (replaceLetter == "") replaceLetter = "-";
+      if (replaceLetter == "") replaceLetter = decoder.emoji;
       current = replaceAll(current, decoder.emoji, replaceLetter);
     });
     return current;
@@ -61,10 +61,7 @@
 
   let decoderState;
   $: {
-    decoderState = newDecoderState(ciphertext);
-    // console.log(decoderState)
-    // console.log("decoding")
-    // console.log(decode(ciphertext, decoderState))
+    decoderState = newDecoderState(ciphertext)
   }
 </script>
 
