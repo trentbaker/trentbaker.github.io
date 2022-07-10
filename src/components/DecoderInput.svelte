@@ -4,7 +4,7 @@
 </script>
 
 <div class="decoderInput">
-  <div class="label">{emoji}</div> <input maxlength="1" bind:value={currentLetter} />
+  <div class="label">{emoji}</div> <input maxlength="1" bind:value={currentLetter}  />
 </div>
 
 <style>

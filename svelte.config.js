@@ -7,11 +7,11 @@ const config = {
 
   kit: {
     adapter: adapter({
-      pages: "docs",
-      assets: "docs"
+      pages: "static/docs",
+      assets: "static/docs",
     }),
     paths: {
-      base: "/trentbaker.github.io",
+      base: "/docs",
     },
     prerender: {
       default: true,
