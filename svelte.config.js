@@ -1,20 +1,15 @@
-import adapter from "@sveltejs/adapter-static";
-import preprocess from "svelte-preprocess";
+import adapter from "@sveltejs/adapter-vercel";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  preprocess: preprocess(),
-
   kit: {
     adapter: adapter({
-      pages: "static/docs",
-      assets: "static/docs",
+      pages: "docs",
+      assets: "docs",
+      // fallback: "200.html",
     }),
-    paths: {
-      base: "/docs",
-    },
-    prerender: {
-      default: true,
+    paths:{
+      base:"",
     },
   },
 };

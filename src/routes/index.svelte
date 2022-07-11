@@ -89,7 +89,7 @@
 
 <div class="container">
     <div class="decoder">
-        <h1>Decoder</h1>
+        <h1>Emoji Decoder</h1>
         <textarea
                 class="ciphertext"
                 placeholder="ciphertext"
