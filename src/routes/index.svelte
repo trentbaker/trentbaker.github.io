@@ -1,12 +1,13 @@
 <script lang="ts">
     import DecoderInput from "../components/DecoderInput.svelte";
+    import DecoderStatistic from "../components/DecoderStatistic.svelte";
 
     const uniqueCharacters = (input) => {
         let stripped = input.replace(/\s+/g, "");
         return [...new Set([...stripped])];
     };
 
-    let ciphertext: String = ""
+    let ciphertext: String = "🍇 🍋🍒🥒 🍋 🥕🫒🥭🍅 🍑🥒🥭🍋🍐🥕🥒 🍍🥒🫒🍍🥑🥒 🫒🫑 🍒🥥🥒 🍇🫑🍒🥒🍊🫑🥒🍒 🍒🫒🥑🍆 🍌🥒 🍒🫒"
 
     type InputState = {
         emoji: String;
@@ -24,21 +25,21 @@
         });
     };
 
-    const replaceAll = (
-        source: String,
-        toReplace: String,
-        replacement: String
-    ) => {
-        let current = source;
-        let next = current.replace(toReplace, replacement);
-        while (current != next) {
-            current = next;
-            next = current.replace(toReplace, replacement);
-        }
-        return current;
-    };
-
     const decode = (ciphertext: String, inputs: InputState[]) => {
+        const replaceAll = (
+            source: String,
+            toReplace: String,
+            replacement: String
+        ) => {
+            let current = source;
+            let next = current.replace(toReplace, replacement);
+            while (current != next) {
+                current = next;
+                next = current.replace(toReplace, replacement);
+            }
+            return current;
+        };
+
         let current = ciphertext;
         inputs.forEach((decoder) => {
             let replaceLetter = decoder.currentLetter;
@@ -49,18 +50,31 @@
         return current;
     };
 
-    $: occurrences = Object.entries([...ciphertext.replace(/\s+/g, "")].reduce((occurrences, item) => {
+    const countOccurrencesOfEach = (input: String) => Object.entries([...input.replace(/\s+/g, "")].reduce((occurrences, item) => {
         occurrences[item] = (occurrences[item] || 0) + 1;
         return occurrences;
-    }, {})).sort((a, b) => { return b[1] - a[1] }).map((item) => item.join(":")).join("\t\t")
+    }, {}))
 
-    $: oneLetterWords = [... new Set(ciphertext.split(/\s+/g).filter((word) => {
+    const inputErrors = (decoderState: InputState[]) => {
+        const inputString = decoderState.map((decoder) => decoder.currentLetter).filter((letter) => letter != "").join("")
+        const inputOccurrences = countOccurrencesOfEach(inputString)
+        const out = inputOccurrences.filter((a) => {
+            return a[1] > 1
+        }).map((error) => { return `using ${error[0]} too many times`})
+        return out.join("\n")
+    }
+
+    $: occurrences = countOccurrencesOfEach(ciphertext).sort((a, b) => {
+        return b[1] - a[1]
+    }).map((item) => item.join(":")).join("\t\t")
+
+    $: oneLetterWords = [...new Set(ciphertext.split(/\s+/g).filter((word) => {
         return [...word].length == 1
     }))].join("\t")
-    $: twoLetterWords = [... new Set(ciphertext.split(/\s+/g).filter((word) => {
+    $: twoLetterWords = [...new Set(ciphertext.split(/\s+/g).filter((word) => {
         return [...word].length == 2
     }))].join("\t")
-    $: threeLetterWords = [... new Set(ciphertext.split(/\s+/g).filter((word) => {
+    $: threeLetterWords = [...new Set(ciphertext.split(/\s+/g).filter((word) => {
         return [...word].length == 3
     }))].join("\t")
 
@@ -85,11 +99,14 @@
 
     $: decoderState = newDecoderState(ciphertext);
     $: decoded = decode(ciphertext, decoderState);
+    $: errors = inputErrors(decoderState)
+
 </script>
 
 <div class="container">
     <div class="decoder">
         <h1>Emoji Decoder</h1>
+
         <textarea
                 class="ciphertext"
                 placeholder="ciphertext"
@@ -105,16 +122,15 @@
             {/each}
         </div>
 
+        <div class="decoded">{decoded}</div>
 
-        <div class="output">
-            <hr>
-            <div class="decoded">{decoded}</div>
-            <hr>
-            <div>occurrences: {occurrences}</div>
-            <div>oneLetterWords: {oneLetterWords}</div>
-            <div>twoLetterWords: {twoLetterWords}</div>
-            <div>threeLetterWords: {threeLetterWords}</div>
-            <div>repeatingDigraphs: {repeatingDigraphs}</div>
+        <div class="stats">
+            <DecoderStatistic label="occurrences" data={occurrences}></DecoderStatistic>
+            <DecoderStatistic label="one letter words" data="{oneLetterWords}"></DecoderStatistic>
+            <DecoderStatistic label="two letter words" data="{twoLetterWords}"></DecoderStatistic>
+            <DecoderStatistic label="three letter words" data="{threeLetterWords}"></DecoderStatistic>
+            <DecoderStatistic label="repeating digraphs" data="{repeatingDigraphs}"></DecoderStatistic>
+            <DecoderStatistic label="input errors" data="{errors}" wordSpacing="normal"></DecoderStatistic>
         </div>
     </div>
 </div>
@@ -129,9 +145,8 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        align-items: center;
+        align-items: start;
         width: 85%;
-
     }
 
     .inputs {
@@ -148,14 +163,14 @@
     }
 
     .decoded {
-       word-break: keep-all;
+        font-size: 2em;
+        word-spacing: 1.5em;
+        white-space: pre-line;
+        margin: 0.5em;
     }
 
-    .output {
+    .stats {
         width: 100%;
         font-size: 2em;
-        word-spacing: 1em;
-        white-space: pre-wrap;
-        word-break: break-word;
     }
 </style>
