@@ -1,7 +1,7 @@
 <script lang="ts">
     import DecoderInput from "../components/DecoderInput.svelte";
 
-    const uniqueCharacters: (input: String) => String[] = (input) => {
+    const uniqueCharacters = (input) => {
         let stripped = input.replace(/\s+/g, "");
         return [...new Set([...stripped])];
     };
