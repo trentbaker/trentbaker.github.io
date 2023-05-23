@@ -1,9 +1,10 @@
 "use client";
 
+import { makeDraggable } from "@/lib/makeDraggable";
+
 interface Player {
   name: string;
   pointHistory: number[];
-  score: number;
 }
 
 interface CribbageBoardProps {
@@ -19,7 +20,7 @@ const CribbageBoard = (props: CribbageBoardProps) => {
   const { players } = props;
 
   const svgWidth = 500;
-  const svgHeight = 1000;
+  const svgHeight = 800;
   const padding = 25;
 
   const boardWidth = svgWidth - padding * 2;
@@ -42,7 +43,9 @@ const CribbageBoard = (props: CribbageBoardProps) => {
       return player.pointHistory
         .slice(player.pointHistory.length - 2)
         .map((peg, pegIndex) => {
-          return laneCoordinates[playerIndex][player.score - pegIndex * peg];
+          return laneCoordinates[playerIndex][
+            player.pointHistory.reduce((a, b) => a + b) - pegIndex * peg
+          ];
         });
     }
   );
@@ -74,8 +77,8 @@ const CribbageBoard = (props: CribbageBoardProps) => {
       <g
         // drawing player pegs
         stroke="yellow"
-        fill="none"
-        strokeWidth="2px"
+        fill="yellow"
+        strokeWidth="5px"
         width={boardWidth}
         height={boardHeight}
       >
@@ -86,7 +89,9 @@ const CribbageBoard = (props: CribbageBoardProps) => {
                 key={JSON.stringify(peg)}
                 cx={peg.x}
                 cy={peg.y}
-                r="1px"
+                r="20px"
+                ref={(a) => makeDraggable(a)}
+                cursor="move"
               ></circle>
             );
           })
@@ -98,10 +103,10 @@ const CribbageBoard = (props: CribbageBoardProps) => {
 
 export default function CribbageScoreCard() {
   const players: Player[] = [
-    { name: "trent", pointHistory: [1, 1, 3], score: 40 },
-    { name: "bonney", pointHistory: [2, 2], score: 40 },
-    { name: "shy", pointHistory: [2, 2], score: 40 },
-    { name: "garrett", pointHistory: [1, 1, 1, 1], score: 40 },
+    { name: "trent", pointHistory: [1, 1, 3] },
+    { name: "bonney", pointHistory: [2, 2] },
+    { name: "shy", pointHistory: [2, 2] },
+    { name: "garrett", pointHistory: [1, 1, 1, 1] },
   ];
   return (
     <div className="flex flex-col h-screen place-content-around">
