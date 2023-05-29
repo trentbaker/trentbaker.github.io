@@ -18,10 +18,46 @@ interface CribbageBoardConfig {
 const CribbageBoard = (config: CribbageBoardConfig) => {
   const { svgHeight, svgWidth, holeCount, players } = config;
 
-  const pathRoute = `
-    M 100 50
-    L 100 750
+  const lanePadding = 20;
+  const padding = (svgHeight + svgWidth) / 40;
+
+  const boardHeight = svgHeight - 2 * padding;
+  const boardWidth = svgWidth - 2 * padding;
+
+  const startingY = svgHeight - padding;
+  const firstCurveY = padding + boardWidth / 2;
+  const secondCurveY = padding + boardHeight - (boardWidth/3);
+  const lastStretchX = boardWidth / 2;
+
+  console.log(
+    JSON.stringify(
+      {
+        padding,
+        boardHeight,
+        boardWidth,
+        lanePadding,
+        startingY,
+        firstCurveY,
+        secondCurveY,
+        lastStretchX,
+      },
+      null,
+      2
+    )
+  );
+
+  const lanes = players.map((player, i) => {
+    const offset = (i + 1) * lanePadding;
+
+    return `
+      M ${padding + offset} ${startingY}
+      L ${padding + offset} ${firstCurveY}
+      A 1 1 0 0 1 ${padding + boardWidth - offset} ${firstCurveY}
+      L ${padding + boardWidth - offset} ${secondCurveY}
+      A 1 1 0 0 1 ${lastStretchX + offset} ${secondCurveY}
+      L ${lastStretchX + offset} ${firstCurveY}
     `;
+  });
 
   const [pathElement, setPathElement] = useState<SVGPathElement>();
 
@@ -44,26 +80,34 @@ const CribbageBoard = (config: CribbageBoardConfig) => {
 
   return (
     <svg height={svgHeight} width={svgWidth} className="bg-base-content">
-      <path
-        ref={(pathElement) => {
-          if (pathElement) setPathElement(pathElement);
-        }}
-        d={pathRoute}
-        stroke="black"
-        fill="none"
-        strokeWidth="15px"
-      ></path>
-      {holeCoordinates.map((hole) => (
-        <circle
-          stroke="blue"
-          fill="none"
-          strokeWidth="2px"
-          r="10px"
-          key={randomBytes(6).toString()}
-          cx={hole?.x}
-          cy={hole?.y}
-        ></circle>
-      ))}
+      {lanes.map((lane) => {
+        return (
+          <path
+            key={JSON.stringify(lane)}
+            ref={(pathElement) => {
+              if (pathElement) setPathElement(pathElement);
+            }}
+            d={lane}
+            fill="none"
+            stroke="black"
+            strokeWidth="2px"
+          ></path>
+        );
+      })}
+      {holeCoordinates.map((hole) => {
+        if (!hole) return;
+        return (
+          <circle
+            stroke="blue"
+            fill="none"
+            strokeWidth="2px"
+            r="1px"
+            key={JSON.stringify({ x: hole?.x, y: hole?.y })}
+            cx={hole?.x}
+            cy={hole?.y}
+          ></circle>
+        );
+      })}
       {playerPegs.map((peg, i) => (
         <circle
           key={randomBytes(4).toString()}
@@ -81,9 +125,9 @@ const CribbageBoard = (config: CribbageBoardConfig) => {
 export default function CribbageScoreCard() {
   const [players, setPlayers] = useState([
     { name: "trent", pointHistory: [1, 1, 3] },
-    // { name: "bonney", pointHistory: [2, 2] },
-    // { name: "shy", pointHistory: [2, 2] },
-    // { name: "garrett", pointHistory: [1, 1, 1, 1] },
+    { name: "bonney", pointHistory: [2, 2] },
+    { name: "shy", pointHistory: [2, 2] },
+    { name: "gurt", pointHistory: [1, 1, 1, 1] },
   ]);
 
   const updatePlayerPoints = (name: string, score: number) =>
@@ -104,7 +148,7 @@ export default function CribbageScoreCard() {
         <CribbageBoard
           svgHeight={800}
           svgWidth={400}
-          holeCount={10}
+          holeCount={120}
           players={players}
         ></CribbageBoard>
       </div>
