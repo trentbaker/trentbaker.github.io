@@ -1,102 +1,63 @@
 "use client";
 
 import { makeDraggable } from "@/lib/makeDraggable";
+import { randomBytes } from "crypto";
+import { useRef, useState } from "react";
 
 interface Player {
   name: string;
   pointHistory: number[];
 }
 
-interface CribbageBoardProps {
-  players: Player[];
+interface CribbageBoardConfig {
+  svgHeight: number;
+  svgWidth: number;
+  holeCount: number;
 }
 
-interface Coodinate {
-  x: number;
-  y: number;
-}
+const CribbageBoard = (config: CribbageBoardConfig) => {
+  const { svgHeight, svgWidth, holeCount } = config;
 
-const CribbageBoard = (props: CribbageBoardProps) => {
-  const { players } = props;
+  const pathRoute = `
+    M 100 50
+    L 100 750
+    `;
+    // A 1 1 0 0 0 200 400
+    // A 1 1 0 0 0 200 50
 
-  const svgWidth = 500;
-  const svgHeight = 800;
-  const padding = 25;
+  const [pathElement, setPathElement] = useState<SVGPathElement>();
 
-  const boardWidth = svgWidth - padding * 2;
-  const boardHeight = svgHeight - padding * 2;
+  const holeSpacing = (pathElement?.getTotalLength() || 0) / (holeCount + 1);
 
-  const holeSpacing = boardHeight / 120;
-  const laneSpacing = boardWidth / (players.length + 1);
-
-  const laneCoordinates: Coodinate[][] = players.map((_, playerIndex) =>
-    Array.from({ length: 120 }, (_, holeIndex) => {
-      return {
-        x: (1 + playerIndex) * laneSpacing + padding,
-        y: (1 + holeIndex) * holeSpacing + padding,
-      };
-    })
-  );
-
-  const playerPegCoordinates: Coodinate[][] = players.map(
-    (player, playerIndex) => {
-      return player.pointHistory
-        .slice(player.pointHistory.length - 2)
-        .map((peg, pegIndex) => {
-          return laneCoordinates[playerIndex][
-            player.pointHistory.reduce((a, b) => a + b) - pegIndex * peg
-          ];
-        });
-    }
-  );
+  const holeCoordinates = Array.from({ length: holeCount }).map((_, i) => {
+    const distance = (i + 1) * holeSpacing;
+    return pathElement?.getPointAtLength(distance);
+  });
 
   return (
-    <svg className="bg-base-content" width={svgWidth} height={svgHeight}>
-      <g
-        // drawing all holes
+    <svg height={svgHeight} width={svgWidth} className="bg-base-content">
+      <path
+        ref={(pathElement) => {
+          if (pathElement) setPathElement(pathElement);
+        }}
+        d={pathRoute}
         stroke="black"
         fill="none"
-        strokeWidth="2px"
-        width={boardWidth}
-        height={boardHeight}
-      >
-        {laneCoordinates.map((lane) =>
-          lane.map((hole) => {
-            return (
-              <circle
-                key={JSON.stringify(hole)}
-                cx={hole.x}
-                cy={hole.y}
-                r="1px"
-              ></circle>
-            );
-          })
-        )}
-      </g>
-
-      <g
-        // drawing player pegs
-        stroke="yellow"
-        fill="yellow"
-        strokeWidth="5px"
-        width={boardWidth}
-        height={boardHeight}
-      >
-        {playerPegCoordinates.map((playerPegs) =>
-          playerPegs.map((peg) => {
-            return (
-              <circle
-                key={JSON.stringify(peg)}
-                cx={peg.x}
-                cy={peg.y}
-                r="20px"
-                ref={(a) => makeDraggable(a)}
-                cursor="move"
-              ></circle>
-            );
-          })
-        )}
-      </g>
+        strokeWidth="15px"
+      ></path>
+      {holeCoordinates.map((hole) => {
+        return (
+          <circle
+            stroke="blue"
+            fill="none"
+            strokeWidth="2px"
+            r="10px"
+            key={randomBytes(6).toString()}
+            cx={hole?.x}
+            cy={hole?.y}
+          ></circle>
+        );
+      })}
     </svg>
   );
 };
@@ -111,7 +72,11 @@ export default function CribbageScoreCard() {
   return (
     <div className="flex flex-col h-screen place-content-around">
       <div className="flex place-content-around">
-        <CribbageBoard players={players.slice(0, 4)}></CribbageBoard>
+        <CribbageBoard
+          svgHeight={800}
+          svgWidth={400}
+          holeCount={10}
+        ></CribbageBoard>
       </div>
       <div className="flex justify-center items-center">
         {players.map((player) => {
